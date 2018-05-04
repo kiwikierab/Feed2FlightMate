@@ -225,8 +225,8 @@ while true
   do
     sleep 30
     #/bin/nc 127.0.0.1 30005 | /bin/nc radar1.ddns.net $RECEIVERPORT
-    /usr/bin/socat -u TCP:localhost:30005 TCP:radar1.ddns.net:$RECEIVERPORT
-    /usr/bin/socat -u TCP:localhost:30005 TCP:feed.adsbexchange.com:30005
+    /usr/bin/socat -u TCP:192.168.1.67:30005 TCP:192.168.1.25:$RECEIVERPORT
+    /usr/bin/socat -u TCP:192.168.1.67:30005 TCP:feed.adsbexchange.com:30005
   done
 EOF
 
