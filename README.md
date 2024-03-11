@@ -1,5 +1,5 @@
-# radar5reed
-Feed to radar5
+# Feed2FlightMate
+Feed to FlightMate
 
 
 Open terminal and enter the following lines:
@@ -9,10 +9,10 @@ You will need to know the Lat/Lng and Alt of the reciever in order to proceed.
 sudo apt-get install git
 
 
-git clone https://github.com/kiwikierab/radar5feed
+git clone https://github.com/kiwikierab/Feed2FlightMate
 
 
-cd radar5feed
+cd Feed2FlightMate
 
 
 chmod +x setup.sh
