@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #####################################################################################
-#                        ADS-B EXCHANGE SETUP SCRIPT FORKED                         #
+#                        FlightMate SETUP SCRIPT FORKED                         #
 #####################################################################################
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                                   #
@@ -58,22 +58,22 @@ MLATCLIENTTAG="v0.2.6"
 
 ## WHIPTAIL DIALOGS
 
-BACKTITLETEXT="ADS-B Exchange Setup Script"
+BACKTITLETEXT="FlightMate Setup Script"
 
-whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "Thanks for choosing to share your data with Radar5!\n\nradar5.cfis a co-op of ADS-B/Mode S/MLAT feeders from around the New Zealand. This script will configure your current your ADS-B receiver to share your feeders data with Radar5 and ADS-B Exchange.\n\nWould you like to continue setup?" 13 78
+whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "Thanks for choosing to share your data with FlightMate!\n\nFlightMate.cfis a co-op of ADS-B/Mode S/MLAT feeders from around the New Zealand. This script will configure your current your ADS-B receiver to share your feeders data with FlightMate.\n\nWould you like to continue setup?" 13 78
 CONTINUESETUP=$?
 if [ $CONTINUESETUP = 1 ]; then
     exit 0
 fi
 
-ADSBEXCHANGEUSERNAME=$(whiptail --backtitle "$BACKTITLETEXT" --title "Radar5 User Name" --nocancel --inputbox "\nPlease enter your Radar5 user name.\n\nIf you have more than one receiver, this username should be unique.\nExample: \"username-01\", \"username-02\", etc." 12 78 3>&1 1>&2 2>&3)
+flightmateUSERNAME=$(whiptail --backtitle "$BACKTITLETEXT" --title "FlightMate User Name" --nocancel --inputbox "\nPlease enter your FlightMate user name.\n\nIf you have more than one receiver, this username should be unique.\nExample: \"username-01\", \"username-02\", etc." 12 78 3>&1 1>&2 2>&3)
 RECEIVERLATITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Latitude" --nocancel --inputbox "\nEnter your receivers latitude." 9 78 3>&1 1>&2 2>&3)
 RECEIVERLONGITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Longitude" --nocancel --inputbox "\nEnter your recivers longitude." 9 78 3>&1 1>&2 2>&3)
 RECEIVERALTITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Longitude" --nocancel --inputbox "\nEnter your recivers atitude." 9 78 "`curl -s https://maps.googleapis.com/maps/api/elevation/json?locations=$RECEIVERLATITUDE,$RECEIVERLONGITUDE | python -c "import json,sys;obj=json.load(sys.stdin);print obj['results'][0]['elevation'];"`" 3>&1 1>&2 2>&3)
 RECEIVERPORT=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Feed Port" --nocancel --inputbox "\nChange only if you were assigned a custom feed port.\nFor most all users it is required this port remain set to port 5000." 10 78 "5000" 3>&1 1>&2 2>&3)
 
 
-whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "We are now ready to begin setting up your receiver to feed Radar5.\n\nDo you wish to proceed?" 9 78
+whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "We are now ready to begin setting up your receiver to feed FlightMate.\n\nDo you wish to proceed?" 9 78
 CONTINUESETUP=$?
 if [ $CONTINUESETUP = 1 ]; then
     exit 0
@@ -168,12 +168,12 @@ fi
     echo "" >> $LOGFILE
 
     # Create the mlat-client maintenance script.
-    tee adsbexchange-mlat_maint.sh > /dev/null <<EOF
+    tee flightmate-mlat_maint.sh > /dev/null <<EOF
 #!/bin/sh
 while true
   do
     sleep 30
-    /usr/bin/mlat-client --input-type dump1090 --input-connect localhost:30005 --lat $RECEIVERLATITUDE --lon $RECEIVERLONGITUDE --alt $RECEIVERALTITUDE --user $ADSBEXCHANGEUSERNAME --server feed.adsbexchange.com:31090 --no-udp --results beast,connect,localhost:30104
+    /usr/bin/mlat-client --input-type dump1090 --input-connect localhost:30005 --lat $RECEIVERLATITUDE --lon $RECEIVERLONGITUDE --alt $RECEIVERALTITUDE --user $flightmateUSERNAME --server feed.flightmate.com:31090 --no-udp --results beast,connect,localhost:30104
   done
 EOF
 
@@ -181,15 +181,15 @@ EOF
     sleep 0.25
 
     # Set execute permissions on the mlat-client maintenance script.
-    chmod +x adsbexchange-mlat_maint.sh >> $LOGFILE
+    chmod +x flightmate-mlat_maint.sh >> $LOGFILE
 
     echo 52
     sleep 0.25
 
     # Add a line to execute the mlat-client maintenance script to /etc/rc.local so it is started after each reboot if one does not already exist.
-    if ! grep -Fxq "$PWD/adsbexchange-mlat_maint.sh &" /etc/rc.local; then
+    if ! grep -Fxq "$PWD/flightmate-mlat_maint.sh &" /etc/rc.local; then
         LINENUMBER=($(sed -n '/exit 0/=' /etc/rc.local))
-        ((LINENUMBER>0)) && sudo sed -i "${LINENUMBER[$((${#LINENUMBER[@]}-1))]}i $PWD/adsbexchange-mlat_maint.sh &\n" /etc/rc.local >> $LOGFILE
+        ((LINENUMBER>0)) && sudo sed -i "${LINENUMBER[$((${#LINENUMBER[@]}-1))]}i $PWD/flightmate-mlat_maint.sh &\n" /etc/rc.local >> $LOGFILE
     fi
 
     echo 58
@@ -200,8 +200,8 @@ EOF
     echo "-------------------------------------------------" >> $LOGFILE
     echo "" >> $LOGFILE
 
-    # Kill any currently running instances of the adsbexchange-mlat_maint.sh script.
-    PIDS=`ps -efww | grep -w "adsbexchange-mlat_maint.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
+    # Kill any currently running instances of the flightmate-mlat_maint.sh script.
+    PIDS=`ps -efww | grep -w "flightmate-mlat_maint.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
     if [ ! -z "$PIDS" ]; then
         sudo kill $PIDS >> $LOGFILE
         sudo kill -9 $PIDS >> $LOGFILE
@@ -211,45 +211,44 @@ EOF
     sleep 0.25
 
     # Execute the mlat-client maintenance script.
-    sudo nohup $PWD/adsbexchange-mlat_maint.sh > /dev/null 2>&1 & >> $LOGFILE
+    sudo nohup $PWD/flightmate-mlat_maint.sh > /dev/null 2>&1 & >> $LOGFILE
 
     echo 70
     sleep 0.25
 
-    # SETUP NETCAT TO SEND DUMP1090 DATA TO ADS-B EXCHANGE
+    # SETUP NETCAT TO SEND DUMP1090 DATA TO FlightMate
 
     # Create the netcat maintenance script.
-    tee adsbexchange-netcat_maint.sh > /dev/null <<EOF
+    tee flightmate-netcat_maint.sh > /dev/null <<EOF
 #!/bin/sh
 while true
   do
     sleep 30
-    #/bin/nc 127.0.0.1 30005 | /bin/nc radar1.ddns.net $RECEIVERPORT
-    /usr/bin/socat -u TCP:192.168.1.67:30005 TCP:192.168.1.25:$RECEIVERPORT
-    /usr/bin/socat -u TCP:192.168.1.67:30005 TCP:feed.adsbexchange.com:30005
+    #/bin/nc 127.0.0.1 30005 | /bin/nc in.flightmate.nz $RECEIVERPORT
+    /usr/bin/socat -u TCP:127.0.0.1:30005 TCP:in.flightmate.com:30005
   done
 EOF
 
     echo 76
     sleep 0.25
 
-    # Set permissions on the file adsbexchange-netcat_maint.sh.
-    chmod +x adsbexchange-netcat_maint.sh >> $LOGFILE
+    # Set permissions on the file flightmate-netcat_maint.sh.
+    chmod +x flightmate-netcat_maint.sh >> $LOGFILE
 
     echo 82
     sleep 0.25
 
     # Add a line to execute the netcat maintenance script to /etc/rc.local so it is started after each reboot if one does not already exist.
-    if ! grep -Fxq "$PWD/adsbexchange-netcat_maint.sh &" /etc/rc.local; then
+    if ! grep -Fxq "$PWD/flightmate-netcat_maint.sh &" /etc/rc.local; then
         lnum=($(sed -n '/exit 0/=' /etc/rc.local))
-        ((lnum>0)) && sudo sed -i "${lnum[$((${#lnum[@]}-1))]}i $PWD/adsbexchange-netcat_maint.sh &\n" /etc/rc.local >> $LOGFILE
+        ((lnum>0)) && sudo sed -i "${lnum[$((${#lnum[@]}-1))]}i $PWD/flightmate-netcat_maint.sh &\n" /etc/rc.local >> $LOGFILE
     fi
 
     echo 88
     sleep 0.25
 
-    # Kill any currently running instances of the adsbexchange-netcat_maint.sh script.
-    PIDS=`ps -efww | grep -w "adsbexchange-netcat_maint.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
+    # Kill any currently running instances of the flightmate-netcat_maint.sh script.
+    PIDS=`ps -efww | grep -w "flightmate-netcat_maint.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
     if [ ! -z "$PIDS" ]; then
         sudo kill $PIDS >> $LOGFILE
         sudo kill -9 $PIDS >> $LOGFILE
@@ -259,15 +258,15 @@ EOF
     sleep 0.25
 
     # Execute the netcat maintenance script.
-    sudo nohup $PWD/adsbexchange-netcat_maint.sh > /dev/null 2>&1 & >> $LOGFILE
+    sudo nohup $PWD/flightmate-netcat_maint.sh > /dev/null 2>&1 & >> $LOGFILE
     echo 100
     sleep 0.25
 
-} | whiptail --backtitle "$BACKTITLETEXT" --title "Setting Up ADS-B Exchange Feed"  --gauge "\nSetting up your receiver to feed Radar5.\nThe setup process may take awhile to complete..." 8 60 0
+} | whiptail --backtitle "$BACKTITLETEXT" --title "Setting Up FlightMate Feed"  --gauge "\nSetting up your receiver to feed FlightMate.\nThe setup process may take awhile to complete..." 8 60 0
 
 ## SETUP COMPLETE
 
 # Display the thank you message box.
-whiptail --title "Radar5 Setup Script" --msgbox "\nSetup is now complete.\n\nYour feeder should now be feeding data to Radar5.\nThanks again for choosing to share your data with Radar5!\n\nIf you have questions or encountered any issues while using this script feel free to post them to one of the following places.\n\nhttps://github.com/jprochazka/adsb-exchange\nhttp://radar5.cf/about#contact/" 17 73
+whiptail --title "FlightMate Setup Script" --msgbox "\nSetup is now complete.\n\nYour feeder should now be feeding data to FlightMate.\nThanks again for choosing to share your data with FlightMate!\n\nIf you have questions or encountered any issues while using this script feel free to post them to one of the following places.\n\\nhttp://FlightMate.nz/" 17 73
 
 exit 0
