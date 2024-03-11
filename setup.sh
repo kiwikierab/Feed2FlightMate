@@ -60,7 +60,7 @@ MLATCLIENTTAG="v0.2.6"
 
 BACKTITLETEXT="FlightMate Setup Script"
 
-whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "Thanks for choosing to share your data with FlightMate!\n\nFlightMate.cfis a co-op of ADS-B/Mode S/MLAT feeders from around the New Zealand. This script will configure your current your ADS-B receiver to share your feeders data with FlightMate.\n\nWould you like to continue setup?" 13 78
+whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "Thanks for choosing to share your data with FlightMate!\n\nFlightMate.cfis a co-op of ADS-B/Mode S/MLAT feeders from around the New Zealand. This script will configure your current ADS-B receiver to share your feeders' data with FlightMate.\n\nWould you like to continue setup?" 13 78
 CONTINUESETUP=$?
 if [ $CONTINUESETUP = 1 ]; then
     exit 0
@@ -69,8 +69,8 @@ fi
 flightmateUSERNAME=$(whiptail --backtitle "$BACKTITLETEXT" --title "FlightMate User Name" --nocancel --inputbox "\nPlease enter your FlightMate user name.\n\nIf you have more than one receiver, this username should be unique.\nExample: \"username-01\", \"username-02\", etc." 12 78 3>&1 1>&2 2>&3)
 RECEIVERLATITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Latitude" --nocancel --inputbox "\nEnter your receivers latitude." 9 78 3>&1 1>&2 2>&3)
 RECEIVERLONGITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Longitude" --nocancel --inputbox "\nEnter your recivers longitude." 9 78 3>&1 1>&2 2>&3)
-RECEIVERALTITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Longitude" --nocancel --inputbox "\nEnter your recivers atitude." 9 78 "`curl -s https://maps.googleapis.com/maps/api/elevation/json?locations=$RECEIVERLATITUDE,$RECEIVERLONGITUDE | python -c "import json,sys;obj=json.load(sys.stdin);print obj['results'][0]['elevation'];"`" 3>&1 1>&2 2>&3)
-RECEIVERPORT=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Feed Port" --nocancel --inputbox "\nChange only if you were assigned a custom feed port.\nFor most all users it is required this port remain set to port 5000." 10 78 "5000" 3>&1 1>&2 2>&3)
+RECEIVERALTITUDE=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Longitude" --nocancel --inputbox "\nEnter your recivers altitude." 9 78 "`curl -s https://maps.googleapis.com/maps/api/elevation/json?locations=$RECEIVERLATITUDE,$RECEIVERLONGITUDE | python -c "import json,sys;obj=json.load(sys.stdin);print obj['results'][0]['elevation'];"`" 3>&1 1>&2 2>&3)
+RECEIVERPORT=$(whiptail --backtitle "$BACKTITLETEXT" --title "Receiver Feed Port" --nocancel --inputbox "\nChange only if you were assigned a custom feed port.\nUnless you have been told otherwise, leave this set to 5000." 10 78 "5000" 3>&1 1>&2 2>&3)
 
 
 whiptail --backtitle "$BACKTITLETEXT" --title "$BACKTITLETEXT" --yesno "We are now ready to begin setting up your receiver to feed FlightMate.\n\nDo you wish to proceed?" 9 78
@@ -225,7 +225,7 @@ while true
   do
     sleep 30
     #/bin/nc 127.0.0.1 30005 | /bin/nc in.flightmate.nz $RECEIVERPORT
-    /usr/bin/socat -u TCP:127.0.0.1:30005 TCP:in.flightmate.com:30005
+    /usr/bin/socat -u TCP:127.0.0.1:30005 TCP:in.flightmate.nz:$RECEIVERPORT
   done
 EOF
 
